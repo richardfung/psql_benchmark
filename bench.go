@@ -66,12 +66,12 @@ func benchmark(queryCount int, threadCount int, queryType string) {
 	for i := 0; i < threadCount; i++ {
 		go runQuery(query, &queryCount, db, &queryCountLock, start, &waitGroup)
 	}
-	start = time.Now()
+	startTime := time.Now()
 	for i := 0; i < threadCount; i++ {
 		start <- struct{}{}
 	}
 	waitGroup.Wait()
-	fmt.Println(time.Now() - start)
+	fmt.Println(time.Since(startTime).Seconds())
 }
 
 func runQuery(query string, queryCount *int, db *sql.DB,

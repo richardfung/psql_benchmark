@@ -1,6 +1,7 @@
 import argparse
 import psycopg2
 import threading
+import time
 
 query_types = {"small": "SELECT * FROM small",
                "big": "SELECT * FROM big",
@@ -36,12 +37,12 @@ def main(query_count, thread_count, query_type):
     threads = [_make_thread() for i in xrange(thread_count)]
     for thread in threads:
         thread.start()
-    start = time.clock()
+    start = time.time()
     for thread in threads:
         start_semaphore.release()
     for thread in threads:
         thread.join()
-    print(time.clock() - start)
+    print(time.time() - start)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
