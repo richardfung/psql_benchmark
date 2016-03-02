@@ -52,7 +52,7 @@ func benchmark(queryCount int, threadCount int, queryType string) {
 	case "big":
 		query = "SELECT * FROM big"
 	}
-	db, err := sql.Open("postgres", "user=postgres dbname=test")
+	db, err := sql.Open("postgres", "user=postgres dbname=test sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
