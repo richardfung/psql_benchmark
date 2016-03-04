@@ -59,26 +59,26 @@ func benchmark(queryCount int, threadCount int, queryType string) {
 	runtime.GOMAXPROCS(threadCount + 1)
 	db.SetMaxIdleConns(threadCount)
 	db.SetMaxOpenConns(threadCount)
-	start := make(chan struct{})
-	var waitGroup sync.WaitGroup
 	var queryCountLock sync.Mutex
-	waitGroup.Add(threadCount)
+	var startGroup sync.WaitGroup
+	var doneGroup sync.WaitGroup
+	startGroup.Add(1)
+	doneGroup.Add(threadCount)
 	for i := 0; i < threadCount; i++ {
-		go runQuery(query, &queryCount, db, &queryCountLock, start, &waitGroup)
+		go runQuery(query, &queryCount, db, &queryCountLock, &startGroup,
+			&doneGroup)
 	}
 	startTime := time.Now()
-	for i := 0; i < threadCount; i++ {
-		start <- struct{}{}
-	}
-	waitGroup.Wait()
+	startGroup.Done()
+	doneGroup.Wait()
 	fmt.Println(time.Since(startTime).Seconds())
 }
 
 func runQuery(query string, queryCount *int, db *sql.DB,
-	queryCountLock *sync.Mutex, start <-chan struct{},
-	waitGroup *sync.WaitGroup) {
-	defer func() { waitGroup.Done() }()
-	<-start
+	queryCountLock *sync.Mutex, startGroup *sync.WaitGroup,
+	doneGroup *sync.WaitGroup) {
+	defer func() { doneGroup.Done() }()
+	startGroup.Wait()
 
 	var pointers []interface{}
 	queryCountLock.Lock()
